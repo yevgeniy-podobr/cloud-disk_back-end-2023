@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs')
 const User = require('../models/User')
-const config = require("config")
+require('dotenv').config()
 const Router = require('express')
 const jwt = require('jsonwebtoken')
 const { check, validationResult } = require('express-validator')
@@ -51,7 +51,7 @@ router.post('/login',
       if (!isPasswordVaild) {
         return res.status(404).json({message: 'Invalid password'})
       }
-      const token = jwt.sign({id: user.id}, config.get("secretKey"), {expiresIn: "24h"})
+      const token = jwt.sign({id: user.id}, process.env.SECRET_KEY, {expiresIn: "24h"})
 
       return res.json({
         token,
@@ -73,7 +73,7 @@ router.get('/auth', authMiddleware,
   async (req, res) => {
     try {
       const user = await User.findOne({_id: req.user.id})
-      const token = jwt.sign({id: user.id}, config.get("secretKey"), {expiresIn: "24h"})
+      const token = jwt.sign({id: user.id}, process.env.SECRET_KEY, {expiresIn: "24h"})
 
       return res.json({
         token,

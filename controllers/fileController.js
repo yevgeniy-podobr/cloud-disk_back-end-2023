@@ -1,5 +1,5 @@
 const fileService = require('../services/fileService')
-const config = require("config")
+require('dotenv').config()
 const fs = require('fs')
 const User = require('../models/User')
 const File = require('../models/File')
@@ -154,7 +154,7 @@ class FileController {
       const file = req.files.file
       const user = await User.findById(req.user.id)
       const avatarName = uuid.v4() + '.jpg'
-      file.mv(config.get("staticPath") + avatarName)
+      file.mv(process.env.STATIC_PATH + avatarName)
       user.avatar = avatarName
       await user.save()
 
@@ -168,7 +168,7 @@ class FileController {
   async deleteAvatar(req, res) {
     try {
       const user = await User.findById(req.user.id)
-      fs.unlinkSync(config.get("staticPath") + user.avatar)
+      fs.unlinkSync(process.env.STATIC_PATH + user.avatar)
       user.avatar = null
       await user.save()
       return res.json(user)

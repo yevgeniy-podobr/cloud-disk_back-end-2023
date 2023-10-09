@@ -1,4 +1,5 @@
 const express = require("express")
+require('dotenv').config()
 const mongoose = require("mongoose")
 const config = require("config")
 const fileUpload = require("express-fileupload")
@@ -22,7 +23,7 @@ app.use('/api/files', fileRouter)
 
 const start = async () => {
   try {
-    await mongoose.connect(config.get('dbUrl'))
+    await mongoose.connect(process.env.DB_URL)
     app.listen(PORT, () => {
       console.log(`Server start on port ${PORT}`)
     })
