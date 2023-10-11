@@ -13,10 +13,10 @@ class FileController {
       const parentFile = await File.findOne({_id: parent})
       if(!parentFile) {
         file.path = name
-        await fileService.createDir(req, file)
+        // await fileService.createDir(req, file)
       } else {
         file.path = `${parentFile.path}/${file.name}`
-        await fileService.createDir(req, file)
+        // await fileService.createDir(req, file)
         parentFile.childs.push(file._id)
         await parentFile.save()
       }
@@ -128,7 +128,7 @@ class FileController {
       if (!file) {
         return res.status(400).json({ message: 'File not found'})
       }
-      fileService.deleteFile(req, file)
+      // fileService.deleteFile(req, file)
       await file.deleteOne()
       return res.json({ message: "File was deleted" })
     } catch (error) {
