@@ -3,7 +3,5 @@
 # dependencies
 .DS_Store
 node_modules/
-files/
-static/
 .env
 .env.local
