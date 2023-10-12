@@ -4,6 +4,7 @@ const fs = require('fs')
 const User = require('../models/User')
 const File = require('../models/File')
 const uuid = require("uuid")
+const buffer = require("buffer")
 
 class FileController {
   async createDir(req, res) {
@@ -108,14 +109,13 @@ class FileController {
   async downloadFile(req, res) {
     try {
       const file = await File.findOne({ _id: req.query.id, user: req.user.id });
-      // const path = fileService.getPath(req, file)
+      const path = fileService.getPath(req, file)
 
-      // if(fs.existsSync(path)) {
-      //   return res.download(path, file.name)
-      // }
+      if(fs.existsSync(path)) {
+        return res.download(path, file.name)
+      }
 
-      // return res.status(400).json({ message: 'Download error'})
-      return res.download(file.name)
+      return res.status(400).json({ message: 'Download error'})
     } catch (error) {
       console.log(error)
       return res.status(500).json({ message: 'Download error'})
@@ -154,7 +154,7 @@ class FileController {
       const file = req.files.file
       const user = await User.findById(req.user.id)
       const avatarName = uuid.v4() + '.jpg'
-      file.mv(process.env.STATIC_PATH + avatarName)
+      file.mv('static/' + avatarName)
       user.avatar = avatarName
       await user.save()
 
@@ -168,7 +168,7 @@ class FileController {
   async deleteAvatar(req, res) {
     try {
       const user = await User.findById(req.user.id)
-      fs.unlinkSync(process.env.STATIC_PATH + user.avatar)
+      fs.unlinkSync('static/' + user.avatar)
       user.avatar = null
       await user.save()
       return res.json(user)
