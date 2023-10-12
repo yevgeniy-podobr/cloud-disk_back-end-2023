@@ -4,7 +4,6 @@ const fs = require('fs')
 const User = require('../models/User')
 const File = require('../models/File')
 const uuid = require("uuid")
-const buffer = require("buffer")
 
 class FileController {
   async createDir(req, res) {
@@ -128,7 +127,7 @@ class FileController {
       if (!file) {
         return res.status(400).json({ message: 'File not found'})
       }
-      // fileService.deleteFile(req, file)
+      fileService.deleteFile(req, file)
       await file.deleteOne()
       return res.json({ message: "File was deleted" })
     } catch (error) {
