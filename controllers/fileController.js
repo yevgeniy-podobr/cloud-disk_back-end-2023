@@ -14,10 +14,10 @@ class FileController {
       const parentFile = await File.findOne({_id: parent})
       if(!parentFile) {
         file.path = name
-        // await fileService.createDir(req, file)
+        await fileService.createDir(req, file)
       } else {
         file.path = `${parentFile.path}/${file.name}`
-        // await fileService.createDir(req, file)
+        await fileService.createDir(req, file)
         parentFile.childs.push(file._id)
         await parentFile.save()
       }
@@ -154,7 +154,7 @@ class FileController {
       const file = req.files.file
       const user = await User.findById(req.user.id)
       const avatarName = uuid.v4() + '.jpg'
-      file.mv('static/' + avatarName)
+      file.mv(process.env.STATIC_PATH + avatarName)
       user.avatar = avatarName
       await user.save()
 
@@ -168,7 +168,7 @@ class FileController {
   async deleteAvatar(req, res) {
     try {
       const user = await User.findById(req.user.id)
-      fs.unlinkSync('static/' + user.avatar)
+      fs.unlinkSync(process.env.STATIC_PATH + user.avatar)
       user.avatar = null
       await user.save()
       return res.json(user)
