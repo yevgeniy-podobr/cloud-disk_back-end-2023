@@ -11,14 +11,14 @@ const File = require('../models/File')
 
 router.post('/registration', 
   [
-    check('email', 'Uncorrect email').isEmail(),
+    check('email', 'Incorrect email').isEmail(),
     check('password', 'Password must be longer then 3 and shorter 12').isLength({min: 3, max: 12})
   ], 
   async (req, res) => {
     try {
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
-        return res.status(400).json({message: "Uncorret request", errors})
+        return res.status(400).json({message: "Incorrect request", errors})
       }
       
       const { email, password } = req.body
@@ -46,9 +46,9 @@ router.post('/login',
       if (!user) {
         return res.status(404).json({message: 'User not found'})
       }
-      const isPasswordVaild = bcrypt.compareSync(password, user.password)
+      const isPasswordValid = bcrypt.compareSync(password, user.password)
 
-      if (!isPasswordVaild) {
+      if (!isPasswordValid) {
         return res.status(404).json({message: 'Invalid password'})
       }
       const token = jwt.sign({id: user.id}, process.env.SECRET_KEY, {expiresIn: "24h"})
