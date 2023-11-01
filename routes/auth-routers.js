@@ -12,13 +12,20 @@ const File = require('../models/File')
 router.post('/registration', 
   [
     check('email', 'Incorrect email').isEmail(),
-    check('password', 'Password must be longer then 3 and shorter 12').isLength({min: 3, max: 12})
+    check('password', 'Password must be longer then 3 and shorter 12 symbols').isLength({min: 3, max: 12})
   ], 
   async (req, res) => {
     try {
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
-        return res.status(400).json({message: "Incorrect request", errors})
+
+        if (errors.errors.length > 1) {
+          return res.status(400).json({
+            message: `${errors.errors[0].msg}, ${errors.errors[1].msg}`, 
+            errors
+          })
+        }
+        return res.status(400).json({message: `${errors.errors[0].msg}`, errors})
       }
       
       const { email, password } = req.body
