@@ -150,10 +150,10 @@ class FileController {
 
   async uploadAvatar(req, res) {
     try {
-      const file = req.files.file
+      // const file = req.files.file
       const user = await User.findById(req.user.id)
       const avatarName = uuid.v4() + '.jpg'
-      file.mv(process.env.STATIC_PATH + avatarName)
+      // file.mv(process.env.STATIC_PATH + avatarName)
       user.avatar = avatarName
       await user.save()
 
@@ -167,7 +167,7 @@ class FileController {
   async deleteAvatar(req, res) {
     try {
       const user = await User.findById(req.user.id)
-      fs.unlinkSync(process.env.STATIC_PATH + user.avatar)
+      // fs.unlinkSync(process.env.STATIC_PATH + user.avatar)
       user.avatar = null
       await user.save()
       return res.json(user)
