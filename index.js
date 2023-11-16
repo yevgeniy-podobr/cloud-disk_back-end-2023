@@ -2,8 +2,7 @@ const express = require("express")
 require('dotenv').config()
 const mongoose = require("mongoose")
 const config = require("config")
-// const Grid = require('gridfs-stream');
-// const fileUpload = require("express-fileupload")
+const fileUpload = require("express-fileupload")
 const authRouter = require('./routes/auth-routers')
 const fileRouter = require('./routes/file.routers')
 
@@ -14,7 +13,7 @@ const path = require("path")
 const app = express()
 const PORT = process.env.PORT || config.get('serverPort')
 
-// app.use(fileUpload({}))
+app.use(fileUpload({}))
 app.use(corsMiddleware)
 app.use(filePathMiddleware(path.resolve(__dirname, 'files')))
 app.use(express.json())
@@ -22,18 +21,10 @@ app.use(express.json())
 app.use('/api/auth', authRouter)
 app.use('/api/files', fileRouter)
 
-let gfs;
-
-
-
 const start = async () => {
   try {
     await mongoose.connect(process.env.DB_URL).then(() => console.log('DB connected'))
-    //   .once('open', () => {
-    //   // Init stream
-    //   gfs = Grid(conn.db, mongoose.mongo);
-    //   gfs.collection('avatars');
-    // });
+
     app.listen(PORT, () => {
       console.log(`Server start on port ${PORT}`)
     })
