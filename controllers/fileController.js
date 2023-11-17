@@ -3,7 +3,10 @@ require('dotenv').config()
 const fs = require('fs')
 const User = require('../models/User')
 const File = require('../models/File')
-const uuid = require("uuid")
+const MongoClient = require("mongodb").MongoClient
+const GridFSBucket = require("mongodb").GridFSBucket
+
+const mongoClient = new MongoClient(process.env.DB_URL)
 
 class FileController {
   async createDir(req, res) {
@@ -150,10 +153,8 @@ class FileController {
 
   async uploadAvatar(req, res) {
     try {
-      // const file = req.files.file
       const user = await User.findById(req.user.id)
-      const avatarName = uuid.v4() + '.jpg'
-      // file.mv(process.env.STATIC_PATH + avatarName)
+      const avatarName = `${req.file.filename}`
       user.avatar = avatarName
       await user.save()
 
@@ -167,13 +168,34 @@ class FileController {
   async deleteAvatar(req, res) {
     try {
       const user = await User.findById(req.user.id)
-      // fs.unlinkSync(process.env.STATIC_PATH + user.avatar)
       user.avatar = null
       await user.save()
       return res.json(user)
     } catch (error) {
       console.log(error)
       return res.status(400).json({ message: 'Delete avatar error'})
+    }
+  }
+
+  async getAvatar(req, res) {
+    try {
+      await mongoClient.connect()
+      const database = mongoClient.db("test")
+  
+      const imageBucket = new GridFSBucket(database, {
+        bucketName: "avatars",
+      })
+  
+      if (req.params.filename) {
+        imageBucket.openDownloadStreamByName(req.params.filename).pipe(res)
+      }
+  
+    } catch (error) {
+      console.log(error)
+      res.status(500).send({
+        message: "Error Something went wrong",
+        error,
+      })
     }
   }
 }

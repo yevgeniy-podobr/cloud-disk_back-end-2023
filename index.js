@@ -13,7 +13,7 @@ const path = require("path")
 const app = express()
 const PORT = process.env.PORT || config.get('serverPort')
 
-app.use(fileUpload({}))
+// app.use(fileUpload({}))
 app.use(corsMiddleware)
 app.use(filePathMiddleware(path.resolve(__dirname, 'files')))
 app.use(express.json())
