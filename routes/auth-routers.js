@@ -67,7 +67,7 @@ router.post('/login',
           email: user.email,
           diskSpace: user.diskSpace,
           usedSpace: user.usedSpace,
-          avatar: user.avatar,
+          avatar: user.avatar
         }
       })
     } catch (error) {

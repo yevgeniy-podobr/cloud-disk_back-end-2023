@@ -5,6 +5,7 @@ const User = require('../models/User')
 const File = require('../models/File')
 const MongoClient = require("mongodb").MongoClient
 const GridFSBucket = require("mongodb").GridFSBucket
+const mongoose = require("mongoose")
 
 const mongoClient = new MongoClient(process.env.DB_URL)
 
@@ -154,8 +155,10 @@ class FileController {
   async uploadAvatar(req, res) {
     try {
       const user = await User.findById(req.user.id)
-      const avatarName = `${req.file.filename}`
-      user.avatar = avatarName
+
+      user.avatar = req.file.filename
+      user.avatarId = req.file.id
+
       await user.save()
 
       return res.json(user)
@@ -167,9 +170,23 @@ class FileController {
 
   async deleteAvatar(req, res) {
     try {
+      console.log(req.params)
+      await mongoClient.connect()
+      const database = mongoClient.db("test")
+      const avatarsBucket = new GridFSBucket(database, {
+        bucketName: "avatars",
+      })
+
       const user = await User.findById(req.user.id)
       user.avatar = null
+      const avatarObjId = new mongoose.Types.ObjectId(user.avatarId);
+      console.log(avatarObjId);
+      await avatarsBucket.delete(avatarObjId)
+
+      user.avatarId = null
       await user.save()
+ 
+
       return res.json(user)
     } catch (error) {
       console.log(error)
@@ -182,12 +199,13 @@ class FileController {
       await mongoClient.connect()
       const database = mongoClient.db("test")
   
-      const imageBucket = new GridFSBucket(database, {
+      const avatarsBucket = new GridFSBucket(database, {
         bucketName: "avatars",
       })
-  
+
+
       if (req.params.filename) {
-        imageBucket.openDownloadStreamByName(req.params.filename).pipe(res)
+        avatarsBucket.openDownloadStreamByName(req.params.filename).pipe(res)
       }
   
     } catch (error) {

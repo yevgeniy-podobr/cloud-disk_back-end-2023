@@ -7,6 +7,7 @@ const User = new Schema({
   diskSpace: {type: Number, default: 1024**3**10},
   usedSpace: {type: Number, default: 0},
   avatar: {type: String},
+  avatarId: {type: String},
   files: [{type: mongoose.ObjectId, ref: 'File'}],
 })
 
