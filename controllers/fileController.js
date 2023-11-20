@@ -17,10 +17,8 @@ class FileController {
       const parentFile = await File.findOne({_id: parent})
       if(!parentFile) {
         file.path = name
-        await fileService.createDir(req, file)
       } else {
         file.path = `${parentFile.path}/${file.name}`
-        await fileService.createDir(req, file)
         parentFile.childs.push(file._id)
         await parentFile.save()
       }
@@ -60,42 +58,30 @@ class FileController {
 
   async uploadFile(req, res) {
     try {
-      const file = req.files.file
+      const file = req.file
+
       const parent = await File.findOne({ user: req.user.id, _id: req.body.parent })
       const user = await User.findOne({ _id: req.user.id })
 
-      if (user.usedSpace + file.size > user.diskSpace) {
+      if (user.usedSpace + file.size + file.chunkSize > user.diskSpace) {
         return res.status(400).json({ message: 'There no space on the disk'})
       }
-      user.usedSpace = file.size + user.usedSpace
+      user.usedSpace = file.size + file.chunkSize + user.usedSpace
 
-      let path
-
-      if(parent) {
-        path = `${req.filePath}/${user.id}/${parent.path}/${file.name}`
-      } else {
-        path = `${req.filePath}/${user.id}/${file.name}`
-      }
-
-      if (fs.existsSync(path)) {
-        return res.status(400).json({ message: 'Fail already exist'})
-      }
-
-      file.mv(path)
-      const typeFile = file.name.split('.').pop()
-      let filePath = file.name
+      let filePath = file.originalname
 
       if (parent) {
-        filePath = parent.path + '/' + file.name
+        filePath = parent.path + '/' + file.originalname
       }
 
       const dbFile = new File({
-        name: file.name,
-        type: typeFile,
-        size: file.size,
+        name: file.originalname,
+        type: file.contentType,
+        size: file.size + file.chunkSize,
         path: filePath,
         parent: parent ? parent?._id : null,
         user: user._id,
+        fileId: file.id,
       })
 
       await dbFile.save()
@@ -131,8 +117,20 @@ class FileController {
       if (!file) {
         return res.status(400).json({ message: 'File not found'})
       }
-      fileService.deleteFile(req, file)
+
+      if (file.type !== 'dir') {
+        await mongoClient.connect()
+        const database = mongoClient.db("test")
+        const filesBucket = new GridFSBucket(database, {
+          bucketName: "files_bucket",
+        })
+  
+        const fileObjId = new mongoose.Types.ObjectId(file.fileId);
+        await filesBucket.delete(fileObjId)
+      }
+
       await file.deleteOne()
+
       return res.json({ message: "File was deleted" })
     } catch (error) {
       console.log(error)
@@ -160,7 +158,7 @@ class FileController {
         await mongoClient.connect()
         const database = mongoClient.db("test")
         const avatarsBucket = new GridFSBucket(database, {
-          bucketName: "avatars",
+          bucketName: "avatars_bucket",
         })
 
         const avatarObjId = new mongoose.Types.ObjectId(user.avatarId);
@@ -184,7 +182,7 @@ class FileController {
       await mongoClient.connect()
       const database = mongoClient.db("test")
       const avatarsBucket = new GridFSBucket(database, {
-        bucketName: "avatars",
+        bucketName: "avatars_bucket",
       })
 
       const user = await User.findById(req.user.id)
@@ -209,7 +207,7 @@ class FileController {
       const database = mongoClient.db("test")
   
       const avatarsBucket = new GridFSBucket(database, {
-        bucketName: "avatars",
+        bucketName: "avatars_bucket",
       })
 
 

@@ -12,6 +12,7 @@ const File = new Schema({
   user: { type: mongoose.ObjectId, ref: 'User' },
   parent: {type: mongoose.ObjectId, ref: 'File'},
   childs: [{type: mongoose.ObjectId, ref: 'File'}],
+  fileId: {type: String},
 })
 
 module.exports = model('File', File)
