@@ -156,6 +156,17 @@ class FileController {
     try {
       const user = await User.findById(req.user.id)
 
+      if (user.avatarId) {
+        await mongoClient.connect()
+        const database = mongoClient.db("test")
+        const avatarsBucket = new GridFSBucket(database, {
+          bucketName: "avatars",
+        })
+
+        const avatarObjId = new mongoose.Types.ObjectId(user.avatarId);
+        await avatarsBucket.delete(avatarObjId)
+      }
+
       user.avatar = req.file.filename
       user.avatarId = req.file.id
 
@@ -170,7 +181,6 @@ class FileController {
 
   async deleteAvatar(req, res) {
     try {
-      console.log(req.params)
       await mongoClient.connect()
       const database = mongoClient.db("test")
       const avatarsBucket = new GridFSBucket(database, {
@@ -180,7 +190,6 @@ class FileController {
       const user = await User.findById(req.user.id)
       user.avatar = null
       const avatarObjId = new mongoose.Types.ObjectId(user.avatarId);
-      console.log(avatarObjId);
       await avatarsBucket.delete(avatarObjId)
 
       user.avatarId = null

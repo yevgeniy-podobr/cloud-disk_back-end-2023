@@ -10,13 +10,16 @@ const uuid = require("uuid").v4
 const storage = new GridFsStorage({
   url: process.env.DB_URL,
   file: (req, file) => {
-    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+    if (req.originalUrl.includes('/avatar') && (file.mimetype === "image/jpeg" || file.mimetype === "image/png")) {
       return {
         bucketName: "avatars",
         filename: `${uuid()}_${file.originalname}`,
       }
     } else {
-      return `${uuid()}_${file.originalname}`
+      return {
+        bucketName: "upload_files",
+        filename: `${uuid()}_${file.originalname}`,
+      }
     }
   },
 })
