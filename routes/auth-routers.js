@@ -6,8 +6,6 @@ const jwt = require('jsonwebtoken')
 const { check, validationResult } = require('express-validator')
 const router = new Router()
 const authMiddleware = require('../middleware/auth.middleware')
-const fileService = require('../services/fileService')
-const File = require('../models/File')
 
 router.post('/registration', 
   [
