@@ -1,5 +1,4 @@
 require('dotenv').config()
-const fs = require('fs')
 const User = require('../models/User')
 const File = require('../models/File')
 const MongoClient = require("mongodb").MongoClient
@@ -108,23 +107,19 @@ class FileController {
         })
         const fileName = file.filenameForDownload.toString()
 
-        filesBucket.openDownloadStreamByName(fileName)
-          .pipe(fs.createWriteStream(`./downloadedFiles/${fileName}`))
-            .on('error', (error) => {
-              return res.status(400).json({ message: 'Download error'})
-            })
-            .on('finish', () => {
-              res.download(`./downloadedFiles/${fileName}`)
-            })
-            .on('close', () => {
-              fs.access(`./downloadedFiles/${fileName}`, (err) => {
-                if (err) {
-                  return res.status(400).json({ message: 'Download error'})
-                }
-                else {
-                  fs.unlinkSync(`./downloadedFiles/${fileName}`)
-                }
-            })})
+        let downloadStream = filesBucket.openDownloadStreamByName(fileName)
+
+        downloadStream.on("data", (data) => {
+          return res.status(200).write(data)
+        })
+    
+        downloadStream.on("error", () => {
+          return res.status(404).send({ error: "Download error" })
+        })
+    
+        downloadStream.on("end", () => {
+          return res.end()
+        })
       } else {
         return res.status(400).json({ message: 'Download error'})
       }
