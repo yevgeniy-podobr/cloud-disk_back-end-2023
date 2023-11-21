@@ -26,7 +26,7 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage })
 
-router.post('', authMiddleware, fileController.createDir)
+router.post('', authMiddleware, fileController.createFile)
 router.get('', authMiddleware, fileController.getFiles)
 router.post('/upload', authMiddleware, upload.single("file"), fileController.uploadFile)
 router.get('/download', authMiddleware, fileController.downloadFile)

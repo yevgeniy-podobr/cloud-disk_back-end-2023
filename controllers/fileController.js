@@ -8,7 +8,7 @@ const mongoose = require("mongoose")
 const mongoClient = new MongoClient(process.env.DB_URL)
 
 class FileController {
-  async createDir(req, res) {
+  async createFile(req, res) {
     try {
       const {name, type, parent} = req.body
       const file = new File({name, type, parent, user: req.user.id})
