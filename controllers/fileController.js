@@ -1,4 +1,3 @@
-const fileService = require('../services/fileService')
 require('dotenv').config()
 const fs = require('fs')
 const User = require('../models/User')
@@ -82,6 +81,7 @@ class FileController {
         parent: parent ? parent?._id : null,
         user: user._id,
         fileId: file.id,
+        filenameForDownload: file.filename,
       })
 
       await dbFile.save()
@@ -98,13 +98,36 @@ class FileController {
   async downloadFile(req, res) {
     try {
       const file = await File.findOne({ _id: req.query.id, user: req.user.id });
-      const path = fileService.getPath(req, file)
+  
+      if (file) {
+        await mongoClient.connect()
+        const database = mongoClient.db("test")
 
-      if(fs.existsSync(path)) {
-        return res.download(path, file.name)
+        const filesBucket = new GridFSBucket(database, {
+          bucketName: "files_bucket",
+        })
+        const fileName = file.filenameForDownload.toString()
+
+        filesBucket.openDownloadStreamByName(fileName)
+          .pipe(fs.createWriteStream(`./downloadedFiles/${fileName}`))
+            .on('error', (error) => {
+              return res.status(400).json({ message: 'Download error'})
+            })
+            .on('finish', () => {
+              res.download(`./downloadedFiles/${fileName}`)
+            })
+            .on('close', () => {
+              fs.access(`./downloadedFiles/${fileName}`, (err) => {
+                if (err) {
+                  return res.status(400).json({ message: 'Download error'})
+                }
+                else {
+                  fs.unlinkSync(`./downloadedFiles/${fileName}`)
+                }
+            })})
+      } else {
+        return res.status(400).json({ message: 'Download error'})
       }
-
-      return res.status(400).json({ message: 'Download error'})
     } catch (error) {
       console.log(error)
       return res.status(500).json({ message: 'Download error'})
