@@ -159,9 +159,11 @@ class FileController {
         await parentFile.save()
       }
 
+      const fileType = file.type
+
       await file.deleteOne()
 
-      return res.json({ message: "File was deleted" })
+      return res.json({ message: `${fileType === 'dir' ? 'Folder' : 'File'} was deleted` })
     } catch (error) {
       console.log(error)
       return res.status(400).json({ message: 'Something was wrong, file was not deleted'})
