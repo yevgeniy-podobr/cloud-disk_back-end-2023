@@ -86,6 +86,11 @@ class FileController {
       await dbFile.save()
       await user.save()
 
+      if (parent) {
+        parent.childs.push(dbFile._id)
+        await parent.save()
+      }
+
       return res.json(dbFile)
 
     } catch (error) {
@@ -132,6 +137,8 @@ class FileController {
   async deleteFile(req, res) {
     try {
       const file = await File.findOne({ _id: req.query.id, user: req.user.id });
+      const parentFile = await File.findById(file.parent)
+
       if (!file) {
         return res.status(400).json({ message: 'File not found'})
       }
@@ -145,6 +152,11 @@ class FileController {
   
         const fileObjId = new mongoose.Types.ObjectId(file.fileId);
         await filesBucket.delete(fileObjId)
+      }
+
+      if (parentFile) {
+        parentFile.childs = parentFile.childs.filter(child => child.toString() !== file._id.toString())
+        await parentFile.save()
       }
 
       await file.deleteOne()
