@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
     }
 
 		const token = jwt.sign({id: user._id}, process.env.SECRET_KEY, {expiresIn: "24h"})
-		const url = `${process.env.REACT_APP_API_URL}reset-password/${user._id}/${token}/`;
+		const url = `${process.env.REACT_APP_API_URL}#/reset-password/${user._id}/${token}/`;
   
 		const error = await sendEmail(user.email, "Reset Password Link", url);
     
@@ -33,29 +33,29 @@ router.post("/", async (req, res) => {
 	}
 });
 
-// verify password reset link
-router.get("/:id/:token", async (req, res) => {
-	try {
-		const user = await User.findOne({ _id: req.params.id });
-		if (!user) return res.status(400).send({ message: "Invalid link" });
+// // verify password reset link
+// router.get("/:id/:token", async (req, res) => {
+// 	try {
+// 		const user = await User.findOne({ _id: req.params.id });
+// 		if (!user) return res.status(400).send({ message: "Invalid link" });
 
-		// const token = await Token.findOne({
-		// 	userId: user._id,
-		// 	token: req.params.token,
-		// });
-		// if (!token) return res.status(400).send({ message: "Invalid link" });
+// 		// const token = await Token.findOne({
+// 		// 	userId: user._id,
+// 		// 	token: req.params.token,
+// 		// });
+// 		// if (!token) return res.status(400).send({ message: "Invalid link" });
 
-    const token = jwt.verify(req.params.token, process.env.SECRET_KEY)
+//     const token = jwt.verify(req.params.token, process.env.SECRET_KEY)
 
-    if (!token) {
-      return res.status(400).json({ message: "Invalid link" })
-    }
+//     if (!token) {
+//       return res.status(400).json({ message: "Invalid link" })
+//     }
 
-		res.status(200).send("Valid Url");
-	} catch (error) {
-		res.status(500).send({ message: "Internal Server Error" });
-	}
-});
+// 		res.status(200).send("Valid Url");
+// 	} catch (error) {
+// 		res.status(500).send({ message: "Internal Server Error" });
+// 	}
+// });
 
 //  set new password
 router.post("/:id/:token", async (req, res) => {
