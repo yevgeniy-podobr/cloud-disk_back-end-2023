@@ -32,7 +32,9 @@ router.post('/registration',
       if (candidate) {
         return res.status(400).join({message: `User with email ${email} already exist`})
       }
-      const hashedPassword = await bcrypt.hash(password, 8)
+  
+      const salt = await bcrypt.genSalt()
+      const hashedPassword = await bcrypt.hash(password, salt)
       const user = new User({email, password: hashedPassword})
       await user.save()
       return res.json({message: 'User was created'})
