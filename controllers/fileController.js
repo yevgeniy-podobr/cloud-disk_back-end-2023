@@ -163,9 +163,11 @@ class FileController {
   async searchFile(req, res) {
     try {
       const searchName = req.query.search
-      let files = await File.find({user: req.user.id})
-      files = files.filter(file => file.name.includes(searchName))
-      return res.json(files)
+      const files = await File.find({user: req.user.id})
+
+      const filteredFiles = files.filter(file => (file.name).toLocaleLowerCase().includes(searchName.toLocaleLowerCase()))
+
+      return res.json(filteredFiles)
     } catch (error) {
       console.log(error)
       return res.status(400).json({ message: 'Search error'})
