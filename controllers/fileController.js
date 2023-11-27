@@ -13,10 +13,7 @@ class FileController {
       const {name, type, parent} = req.body
       const file = new File({name, type, parent, user: req.user.id})
       const parentFile = await File.findOne({_id: parent})
-      if(!parentFile) {
-        file.path = name
-      } else {
-        file.path = `${parentFile.path}/${file.name}`
+      if (parentFile){
         parentFile.childs.push(file._id)
         await parentFile.save()
       }
@@ -66,17 +63,10 @@ class FileController {
       }
       user.usedSpace = file.size + file.chunkSize + user.usedSpace
 
-      let filePath = file.originalname
-
-      if (parent) {
-        filePath = parent.path + '/' + file.originalname
-      }
-
       const dbFile = new File({
         name: file.originalname,
         type: file.contentType,
         size: file.size + file.chunkSize,
-        path: filePath,
         parent: parent ? parent?._id : null,
         user: user._id,
         fileId: file.id,
@@ -250,7 +240,7 @@ class FileController {
     } catch (error) {
       console.log(error)
       res.status(500).send({
-        message: "Error Something went wrong",
+        message: "Error! Something went wrong",
         error,
       })
     }
