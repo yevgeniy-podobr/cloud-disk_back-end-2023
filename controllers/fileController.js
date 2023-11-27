@@ -192,7 +192,7 @@ class FileController {
 
       await user.save()
 
-      return res.json(user)
+      return res.json({ avatar: user.avatar, usedSpace: user.usedSpace })
     } catch (error) {
       console.log(error)
       return res.status(400).json({ message: 'Upload avatar error'})
@@ -216,7 +216,7 @@ class FileController {
       await user.save()
  
 
-      return res.json(user)
+      return res.json({avatar: null, usedSpace: user.usedSpace})
     } catch (error) {
       console.log(error)
       return res.status(400).json({ message: 'Delete avatar error'})
