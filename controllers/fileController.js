@@ -128,6 +128,7 @@ class FileController {
     try {
       const file = await File.findOne({ _id: req.query.id, user: req.user.id });
       const parentFile = await File.findById(file.parent)
+      const user = await User.findOne({ _id: req.user.id })
 
       if (!file) {
         return res.status(400).json({ message: 'File not found'})
@@ -148,10 +149,13 @@ class FileController {
         parentFile.childs = parentFile.childs.filter(child => child.toString() !== file._id.toString())
         await parentFile.save()
       }
-
+      const correctedUserUsedSpace = user.usedSpace - file.size
       const fileType = file.type
 
+      user.usedSpace = correctedUserUsedSpace
+
       await file.deleteOne()
+      await user.save()
 
       return res.json({ message: `${fileType === 'dir' ? 'Folder' : 'File'} was deleted` })
     } catch (error) {
