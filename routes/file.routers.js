@@ -32,6 +32,7 @@ router.post('/upload', authMiddleware, upload.single("file"), fileController.upl
 router.get('/download', authMiddleware, fileController.downloadFile)
 router.delete('/', authMiddleware, fileController.deleteFile)
 router.get('/search', authMiddleware, fileController.searchFile)
+router.post('/rename', authMiddleware, fileController.renameFile)
 router.post('/avatar', authMiddleware, upload.single("avatar"), fileController.uploadAvatar)
 router.delete('/avatar', authMiddleware, fileController.deleteAvatar)
 router.get('/avatar/:filename', fileController.getAvatar)

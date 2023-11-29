@@ -4,6 +4,7 @@ const File = require('../models/File')
 const MongoClient = require("mongodb").MongoClient
 const GridFSBucket = require("mongodb").GridFSBucket
 const mongoose = require("mongoose")
+const uuid = require("uuid").v4
 
 const mongoClient = new MongoClient(process.env.DB_URL)
 
@@ -121,6 +122,40 @@ class FileController {
     } catch (error) {
       console.log(error)
       return res.status(500).json({ message: 'Download error'})
+    }
+  }
+
+  async renameFile(req, res) {
+    try {
+      const { id, name } = req.body
+      const file = await File.findOne({ _id: id, user: req.user.id });
+
+      if (!file) {
+        return res.status(400).json({ message: 'File not found'})
+      }
+
+      if (file.type !== 'dir') {
+        await mongoClient.connect()
+        const database = mongoClient.db("test")
+        const filesBucket = new GridFSBucket(database, {
+          bucketName: "files_bucket",
+        })
+  
+        const fileObjId = new mongoose.Types.ObjectId(file.fileId);
+
+        const newFileNameForDownload = `${uuid()}_${name}`
+        await filesBucket.rename(fileObjId, newFileNameForDownload)
+        file.filenameForDownload = newFileNameForDownload
+      }
+
+      file.name = name
+
+      await file.save()
+
+      return res.json(file)
+    } catch (error) {
+      console.log(error)
+      return res.status(400).json({ message: 'Something was wrong'})
     }
   }
 
