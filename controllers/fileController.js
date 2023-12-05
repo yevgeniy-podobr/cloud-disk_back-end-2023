@@ -7,6 +7,7 @@ const mongoose = require("mongoose")
 const uuid = require("uuid").v4
 
 const mongoClient = new MongoClient(process.env.DB_URL)
+const database = mongoClient.db("test")
 
 class FileController {
   async createFile(req, res) {
@@ -95,8 +96,6 @@ class FileController {
       const file = await File.findOne({ _id: req.query.id, user: req.user.id });
   
       if (file) {
-        await mongoClient.connect()
-        const database = mongoClient.db("test")
 
         const filesBucket = new GridFSBucket(database, {
           bucketName: "files_bucket",
@@ -135,8 +134,7 @@ class FileController {
       }
 
       if (file.type !== 'dir') {
-        await mongoClient.connect()
-        const database = mongoClient.db("test")
+
         const filesBucket = new GridFSBucket(database, {
           bucketName: "files_bucket",
         })
@@ -170,8 +168,7 @@ class FileController {
       }
 
       if (file.type !== 'dir') {
-        await mongoClient.connect()
-        const database = mongoClient.db("test")
+
         const filesBucket = new GridFSBucket(database, {
           bucketName: "files_bucket",
         })
@@ -218,8 +215,7 @@ class FileController {
       const user = await User.findById(req.user.id)
 
       if (user.avatarId) {
-        await mongoClient.connect()
-        const database = mongoClient.db("test")
+
         const avatarsBucket = new GridFSBucket(database, {
           bucketName: "avatars_bucket",
         })
@@ -242,8 +238,7 @@ class FileController {
 
   async deleteAvatar(req, res) {
     try {
-      await mongoClient.connect()
-      const database = mongoClient.db("test")
+
       const avatarsBucket = new GridFSBucket(database, {
         bucketName: "avatars_bucket",
       })
@@ -266,13 +261,10 @@ class FileController {
 
   async getAvatar(req, res) {
     try {
-      await mongoClient.connect()
-      const database = mongoClient.db("test")
   
       const avatarsBucket = new GridFSBucket(database, {
         bucketName: "avatars_bucket",
       })
-
 
       if (req.params.filename) {
         avatarsBucket.openDownloadStreamByName(req.params.filename).pipe(res)

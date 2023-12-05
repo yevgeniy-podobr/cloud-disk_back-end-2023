@@ -2,20 +2,20 @@ const express = require("express")
 require('dotenv').config()
 const mongoose = require("mongoose")
 const config = require("config")
-const authRouter = require('./routes/auth.routers')
-const fileRouter = require('./routes/file.routers')
-const resetPasswordRouter = require('./routes/reset-password.router')
+const authRouters = require('./routes/authRouters')
+const fileRouters = require('./routes/fileRouters')
+const resetPasswordRouters = require('./routes/resetPasswordRouters')
 
-const corsMiddleware = require('./middleware/cors.middleware')
+const corsMiddleware = require('./middleware/corsMiddleware')
 
 const app = express()
 const PORT = process.env.PORT || config.get('serverPort')
 
 app.use(corsMiddleware)
 app.use(express.json())
-app.use('/api/auth', authRouter)
-app.use('/api/files', fileRouter)
-app.use('/api/reset-password', resetPasswordRouter)
+app.use('/api/auth', authRouters)
+app.use('/api/files', fileRouters)
+app.use('/api/reset-password', resetPasswordRouters)
 
 const start = async () => {
   try {

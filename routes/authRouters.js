@@ -5,7 +5,7 @@ const Router = require('express')
 const jwt = require('jsonwebtoken')
 const { check, validationResult } = require('express-validator')
 const router = new Router()
-const authMiddleware = require('../middleware/auth.middleware')
+const authMiddleware = require('../middleware/authMiddleware')
 
 router.post('/registration', 
   [
@@ -30,7 +30,7 @@ router.post('/registration',
       const candidate = await User.findOne({email})
 
       if (candidate) {
-        return res.status(400).join({message: `User with email ${email} already exist`})
+        return res.status(400).json({message: `User with email ${email} already exist`})
       }
   
       const salt = await bcrypt.genSalt()
@@ -75,7 +75,7 @@ router.post('/login',
     }
 })
 
-router.get('/auth', authMiddleware,
+router.get('', authMiddleware,
   async (req, res) => {
     try {
       const user = await User.findOne({_id: req.user.id})
