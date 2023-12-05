@@ -170,7 +170,7 @@ class FileController {
       }
 
       if (file.type !== 'dir') {
-        await mongoClient.connect()
+        // await mongoClient.connect()
         const database = mongoClient.db("test")
         const filesBucket = new GridFSBucket(database, {
           bucketName: "files_bucket",

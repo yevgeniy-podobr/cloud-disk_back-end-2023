@@ -5,7 +5,7 @@ const Router = require('express')
 const jwt = require('jsonwebtoken')
 const { check, validationResult } = require('express-validator')
 const router = new Router()
-const authMiddleware = require('../middleware/auth.middleware')
+const authMiddleware = require('../middleware/authMiddleware')
 
 router.post('/registration', 
   [
