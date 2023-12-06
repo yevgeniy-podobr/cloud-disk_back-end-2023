@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 require('dotenv').config()
 const sendEmail = require('../utils/sendEmail')
 const jwt = require('jsonwebtoken')
+const { check, validationResult } = require('express-validator')
 
 router.post("/", async (req, res) => {
 	try {
@@ -12,7 +13,7 @@ router.post("/", async (req, res) => {
     if (!user){
         return res
           .status(400)
-          .send({ message: "User with given email does not exist!" });
+          .json({ message: "User with given email does not exist!" });
     }
 
 		const token = jwt.sign({id: user._id}, process.env.SECRET_KEY, {expiresIn: "24h"})
@@ -29,31 +30,45 @@ router.post("/", async (req, res) => {
 			.status(200)
 			.json({ message: "Reset Password link sent to your email account" });
 	} catch (error) {
-		res.status(500).send({ message: "Internal Server Error" });
+		return res.status(500).json({ message: "Server Error" });
 	}
 });
 
-router.post("/:id/:token", async (req, res) => {
-	try {
-		const user = await User.findOne({ _id: req.params.id });
-		if (!user) return res.status(400).send({ message: "Invalid link" });
+router.post("/:id/:token", 
+	[
+		check('password', 'Password must be longer then 3 and shorter 12 symbols').isLength({min: 3, max: 12})
+	],
+	async (req, res) => {
+		try {
+			const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          message: `${errors.errors[0].msg}`,
+          errors,
+        });
+      }
 
-    const token = jwt.verify(req.params.token, process.env.SECRET_KEY)
+			const user = await User.findOne({ _id: req.params.id });
 
-    if (!token) {
-      return res.status(400).json({ message: "Invalid link" })
-    }
+			if (!user) return res.status(400).json({ message: "Invalid link" });
 
-		const salt = await bcrypt.genSalt();
-		const hashPassword = await bcrypt.hash(req.body.password, salt);
+			const token = jwt.verify(req.params.token, process.env.SECRET_KEY)
 
-		user.password = hashPassword;
-		await user.save();
+			if (!token) {
+				return res.status(400).json({ message: "Invalid link" })
+			}
 
-		return res.status(200).json({ message: "Password reset successfully" });
-	} catch (error) {
-		return res.status(500).json({ message: "Internal Server Error" });
+			const salt = await bcrypt.genSalt();
+			const hashPassword = await bcrypt.hash(req.body.password, salt);
+
+			user.password = hashPassword;
+			await user.save();
+
+			return res.status(200).json({ message: "Password reset successfully" });
+		} catch (error) {
+			return res.status(500).json({ message: "Server Error" });
+		}
 	}
-});
+);
 
 module.exports = router;

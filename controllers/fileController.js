@@ -109,7 +109,7 @@ class FileController {
         })
     
         downloadStream.on("error", () => {
-          return res.status(404).send({ error: "Download error" })
+          return res.status(404).json({ error: "Download error" })
         })
     
         downloadStream.on("end", () => {
@@ -272,7 +272,7 @@ class FileController {
   
     } catch (error) {
       console.log(error)
-      res.status(500).send({
+      res.status(500).json({
         message: "Error! Something went wrong",
         error,
       })
