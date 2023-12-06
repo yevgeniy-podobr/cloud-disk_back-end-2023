@@ -110,7 +110,7 @@ class FileController {
         })
     
         downloadStream.on("error", () => {
-          return res.status(400).json({ error: "Download error" })
+          return res.status(400).json({ message: "Download error" })
         })
     
         downloadStream.on("end", () => {
@@ -154,7 +154,7 @@ class FileController {
       return res.json(file)
     } catch (error) {
       console.log(error)
-      return res.status(500).json({ message: 'Something was wrong'})
+      return res.status(500).json({ message: 'Something went wrong'})
     }
   }
 
@@ -193,7 +193,7 @@ class FileController {
       return res.json({ message: `${fileType === 'dir' ? 'Folder' : 'File'} was deleted` })
     } catch (error) {
       console.log(error)
-      return res.status(500).json({ message: 'Something was wrong, file was not deleted'})
+      return res.status(500).json({ message: 'Something went wrong, file was not deleted'})
     }
   }
 
