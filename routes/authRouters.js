@@ -17,7 +17,7 @@ router.post('/registration',
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
 
-        return res.status(400).json({
+        return res.status(401).json({
           message:
             errors.errors.length > 1
               ? `${errors.errors[0].msg}, ${errors.errors[1].msg}`
@@ -30,7 +30,7 @@ router.post('/registration',
       const candidate = await User.findOne({email})
 
       if (candidate) {
-        return res.status(400).json({message: `User with email ${email} already exist`})
+        return res.status(401).json({message: `User with email ${email} already exist`})
       }
   
       const salt = await bcrypt.genSalt()
@@ -50,12 +50,12 @@ router.post('/login',
       const { email, password } = req.body
       const user = await User.findOne({ email })
       if (!user) {
-        return res.status(404).json({message: 'User not found'})
+        return res.status(401).json({message: 'User not found'})
       }
       const isPasswordValid = bcrypt.compareSync(password, user.password)
 
       if (!isPasswordValid) {
-        return res.status(404).json({message: 'Invalid password'})
+        return res.status(401).json({message: 'Invalid password'})
       }
       const token = jwt.sign({id: user.id}, process.env.SECRET_KEY, {expiresIn: "24h"})
 
