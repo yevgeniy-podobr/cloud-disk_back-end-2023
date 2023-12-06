@@ -23,7 +23,8 @@ class FileController {
       return res.json(file)
 
     } catch (error) {
-      return res.status(400).json(error)
+      console.log(error)
+      return res.status(500).json({ message: 'File was not created'})
     }
   }
 
@@ -109,7 +110,7 @@ class FileController {
         })
     
         downloadStream.on("error", () => {
-          return res.status(404).json({ error: "Download error" })
+          return res.status(400).json({ error: "Download error" })
         })
     
         downloadStream.on("end", () => {
@@ -153,7 +154,7 @@ class FileController {
       return res.json(file)
     } catch (error) {
       console.log(error)
-      return res.status(400).json({ message: 'Something was wrong'})
+      return res.status(500).json({ message: 'Something was wrong'})
     }
   }
 
@@ -192,7 +193,7 @@ class FileController {
       return res.json({ message: `${fileType === 'dir' ? 'Folder' : 'File'} was deleted` })
     } catch (error) {
       console.log(error)
-      return res.status(400).json({ message: 'Something was wrong, file was not deleted'})
+      return res.status(500).json({ message: 'Something was wrong, file was not deleted'})
     }
   }
 
@@ -206,7 +207,7 @@ class FileController {
       return res.json(filteredFiles)
     } catch (error) {
       console.log(error)
-      return res.status(400).json({ message: 'Search error'})
+      return res.status(500).json({ message: 'Search error'})
     }
   }
 
@@ -232,7 +233,7 @@ class FileController {
       return res.json({ avatar: user.avatar, usedSpace: user.usedSpace })
     } catch (error) {
       console.log(error)
-      return res.status(400).json({ message: 'Upload avatar error'})
+      return res.status(500).json({ message: 'Upload avatar error'})
     }
   }
 
@@ -255,7 +256,7 @@ class FileController {
       return res.json({avatar: null, usedSpace: user.usedSpace})
     } catch (error) {
       console.log(error)
-      return res.status(400).json({ message: 'Delete avatar error'})
+      return res.status(500).json({ message: 'Delete avatar error'})
     }
   }
 
