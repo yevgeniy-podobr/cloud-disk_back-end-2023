@@ -17,13 +17,13 @@ router.post('/registration',
       const errors = validationResult(req)
       if (!errors.isEmpty()) {
 
-        if (errors.errors.length > 1) {
-          return res.status(400).json({
-            message: `${errors.errors[0].msg}, ${errors.errors[1].msg}`, 
-            errors
-          })
-        }
-        return res.status(400).json({message: `${errors.errors[0].msg}`, errors})
+        return res.status(400).json({
+          message:
+            errors.errors.length > 1
+              ? `${errors.errors[0].msg}, ${errors.errors[1].msg}`
+              : `${errors.errors[0].msg}`,
+          errors,
+        });
       }
       
       const { email, password } = req.body
@@ -40,7 +40,7 @@ router.post('/registration',
       return res.json({message: 'User was created'})
 
     } catch (error) {
-      res.send({message: 'Server error'})
+      return res.status(500).json({ message: 'Server error'})
     }
 })
 
@@ -70,8 +70,7 @@ router.post('/login',
         }
       })
     } catch (error) {
-    
-      res.send({message: 'Server error'})
+      return res.status(500).json({ message: 'Server error'})
     }
 })
 
@@ -92,8 +91,7 @@ router.get('', authMiddleware,
         }
       })
     } catch (error) {
-    
-      res.send({message: 'Server error'})
+      return res.status(500).json({ message: 'Server error'})
     }
 })
 
