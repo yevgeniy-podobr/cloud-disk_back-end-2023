@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon"
   },
-  "author": "",
+  "author": "Zhenia Podobreev",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
