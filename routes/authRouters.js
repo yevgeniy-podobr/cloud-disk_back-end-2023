@@ -5,7 +5,6 @@ const Router = require('express')
 const jwt = require('jsonwebtoken')
 const { check, validationResult } = require('express-validator')
 const router = new Router()
-const authMiddleware = require('../middleware/authMiddleware')
 
 router.post('/registration', 
   [
@@ -67,27 +66,6 @@ router.post('/login',
           diskSpace: user.diskSpace,
           usedSpace: user.usedSpace,
           avatar: user.avatar
-        }
-      })
-    } catch (error) {
-      return res.status(500).json({ message: 'Server error'})
-    }
-})
-
-router.get('', authMiddleware,
-  async (req, res) => {
-    try {
-      const user = await User.findOne({_id: req.user.id})
-      const token = jwt.sign({id: user.id}, process.env.SECRET_KEY, {expiresIn: "24h"})
-
-      return res.json({
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          diskSpace: user.diskSpace,
-          usedSpace: user.usedSpace,
-          avatar: user.avatar,
         }
       })
     } catch (error) {
