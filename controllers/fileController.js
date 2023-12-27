@@ -8,6 +8,7 @@ const uuid = require("uuid").v4
 
 const mongoClient = new MongoClient(process.env.DB_URL)
 const database = mongoClient.db("test")
+const emptyFolderSize = 250
 
 class FileController {
   async createFile(req, res) {
@@ -15,9 +16,22 @@ class FileController {
       const {name, type, parent} = req.body
       const file = new File({name, type, parent, user: req.user.id})
       const parentFile = await File.findOne({_id: parent})
+
       if (parentFile){
         parentFile.childs.push(file._id)
         await parentFile.save()
+      }
+
+      if (parentFile) {
+        let parentId = parent
+        while (parentId) {
+          const parentPrev = await File.findOne({_id: parentId})
+          if (parentPrev) {
+            parentPrev.size = parentPrev.size + emptyFolderSize
+            await parentPrev.save()
+          }
+          parentId = parentPrev.parent
+        }
       }
       await file.save()
       return res.json(file)
@@ -76,7 +90,20 @@ class FileController {
         filenameForDownload: file.filename,
       })
 
+      if (parent) {
+        let parentId = req.body.parent
+        while (parentId) {
+          const parentPrev = await File.findOne({ user: req.user.id, _id: parentId })
+          if (parentPrev) {
+            parentPrev.size = parentPrev.size + file.size + file.chunkSize
+            await parentPrev.save()
+          }
+          parentId = parentPrev.parent
+        }
+      }
+
       await dbFile.save()
+      await parent.save()
       await user.save()
 
       if (parent) {
@@ -182,6 +209,25 @@ class FileController {
         parentFile.childs = parentFile.childs.filter(child => child.toString() !== file._id.toString())
         await parentFile.save()
       }
+
+      if (parentFile) {
+        let parentId = file.parent
+        while (parentId) {
+          const parentPrev = await File.findOne({_id: parentId})
+
+          if (parentPrev.size >= file.size) {
+            parentPrev.size = parentPrev.size - file.size
+          }
+  
+          if (file.type === 'dir' && parentPrev.size >= emptyFolderSize) {
+            parentPrev.size = parentPrev.size - emptyFolderSize
+          }
+          await parentPrev.save()
+
+          parentId = parentPrev.parent
+        }
+      }
+
       const correctedUserUsedSpace = user.usedSpace - file.size
       const fileType = file.type
 
