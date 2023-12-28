@@ -18,6 +18,10 @@ class FileController {
       const parentFile = await File.findOne({_id: parent})
       const user = await User.findOne({ _id: req.user.id })
 
+      if (user.usedSpace + emptyFolderSize > user.diskSpace) {
+        return res.status(400).json({ message: 'There no space on the disk'})
+      }
+
       if (parentFile){
         parentFile.childs.push(file._id)
         await parentFile.save()
@@ -38,7 +42,11 @@ class FileController {
       user.usedSpace = user.usedSpace + emptyFolderSize
       await user.save()
       await file.save()
-      return res.json(file)
+
+      return res.json({
+        file,
+        usedSpace: user.usedSpace
+      })
 
     } catch (error) {
       console.log(error)
@@ -82,6 +90,7 @@ class FileController {
       if (user.usedSpace + file.size + file.chunkSize > user.diskSpace) {
         return res.status(400).json({ message: 'There no space on the disk'})
       }
+
       user.usedSpace = file.size + file.chunkSize + user.usedSpace
 
       const dbFile = new File({
@@ -114,7 +123,10 @@ class FileController {
         await parent.save()
       }
 
-      return res.json(dbFile)
+      return res.json({
+        file: dbFile,
+        usedSpace: user.usedSpace
+      })
 
     } catch (error) {
       console.log(error)
@@ -242,7 +254,10 @@ class FileController {
       await file.deleteOne()
       await user.save()
 
-      return res.json({ message: `${fileType === 'dir' ? 'Folder' : 'File'} was deleted` })
+      return res.json({ 
+        message: `${fileType === 'dir' ? 'Folder' : 'File'} was deleted`,
+        usedSpace: user.usedSpace
+      })
     } catch (error) {
       console.log(error)
       return res.status(500).json({ message: 'Something went wrong, file was not deleted'})

@@ -5,6 +5,7 @@ const Router = require('express')
 const jwt = require('jsonwebtoken')
 const { check, validationResult } = require('express-validator')
 const router = new Router()
+const defaultDiskSpace = require("config").get('defaultDiskSpace')
 
 router.post('/registration', 
   [
@@ -63,7 +64,7 @@ router.post('/login',
         user: {
           id: user.id,
           email: user.email,
-          diskSpace: user.diskSpace,
+          diskSpace: defaultDiskSpace,
           usedSpace: user.usedSpace,
           avatar: user.avatar
         }
