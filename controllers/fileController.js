@@ -16,6 +16,7 @@ class FileController {
       const {name, type, parent} = req.body
       const file = new File({name, type, parent, user: req.user.id})
       const parentFile = await File.findOne({_id: parent})
+      const user = await User.findOne({ _id: req.user.id })
 
       if (parentFile){
         parentFile.childs.push(file._id)
@@ -33,6 +34,9 @@ class FileController {
           parentId = parentPrev.parent
         }
       }
+
+      user.usedSpace = user.usedSpace + emptyFolderSize
+      await user.save()
       await file.save()
       return res.json(file)
 
@@ -103,7 +107,6 @@ class FileController {
       }
 
       await dbFile.save()
-      await parent.save()
       await user.save()
 
       if (parent) {
@@ -228,7 +231,10 @@ class FileController {
         }
       }
 
-      const correctedUserUsedSpace = user.usedSpace - file.size
+      const correctedUserUsedSpace = file.type === 'dir' && user.usedSpace >= emptyFolderSize 
+        ? user.usedSpace - emptyFolderSize 
+        : user.usedSpace - file.size
+
       const fileType = file.type
 
       user.usedSpace = correctedUserUsedSpace
