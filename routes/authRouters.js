@@ -5,6 +5,7 @@ const Router = require('express')
 const jwt = require('jsonwebtoken')
 const { check, validationResult } = require('express-validator')
 const router = new Router()
+const defaultDiskSpace = require("config").get('defaultDiskSpace')
 
 router.post('/registration', 
   [
@@ -57,13 +58,16 @@ router.post('/login',
         return res.status(401).json({message: 'Invalid password'})
       }
       const token = jwt.sign({id: user.id}, process.env.SECRET_KEY, {expiresIn: "24h"})
+      user.diskSpace = defaultDiskSpace
+
+      await user.save()
 
       return res.json({
         token,
         user: {
           id: user.id,
           email: user.email,
-          diskSpace: user.diskSpace,
+          diskSpace: defaultDiskSpace,
           usedSpace: user.usedSpace,
           avatar: user.avatar
         }

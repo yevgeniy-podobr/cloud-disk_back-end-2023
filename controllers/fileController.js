@@ -8,6 +8,7 @@ const uuid = require("uuid").v4
 
 const mongoClient = new MongoClient(process.env.DB_URL)
 const database = mongoClient.db("test")
+const emptyFolderSize = 250
 
 class FileController {
   async createFile(req, res) {
@@ -15,12 +16,37 @@ class FileController {
       const {name, type, parent} = req.body
       const file = new File({name, type, parent, user: req.user.id})
       const parentFile = await File.findOne({_id: parent})
+      const user = await User.findOne({ _id: req.user.id })
+
+      if (user.usedSpace + emptyFolderSize > user.diskSpace) {
+        return res.status(400).json({ message: 'There is no free space on the cloud storage'})
+      }
+
       if (parentFile){
         parentFile.childs.push(file._id)
         await parentFile.save()
       }
+
+      if (parentFile) {
+        let parentId = parent
+        while (parentId) {
+          const parentPrev = await File.findOne({_id: parentId})
+          if (parentPrev) {
+            parentPrev.size = parentPrev.size + emptyFolderSize
+            await parentPrev.save()
+          }
+          parentId = parentPrev.parent
+        }
+      }
+
+      user.usedSpace = user.usedSpace + emptyFolderSize
+      await user.save()
       await file.save()
-      return res.json(file)
+
+      return res.json({
+        file,
+        usedSpace: user.usedSpace
+      })
 
     } catch (error) {
       console.log(error)
@@ -62,8 +88,9 @@ class FileController {
       const user = await User.findOne({ _id: req.user.id })
 
       if (user.usedSpace + file.size + file.chunkSize > user.diskSpace) {
-        return res.status(400).json({ message: 'There no space on the disk'})
+        return res.status(400).json({ message: 'There is no free space on the cloud storage'})
       }
+
       user.usedSpace = file.size + file.chunkSize + user.usedSpace
 
       const dbFile = new File({
@@ -76,6 +103,18 @@ class FileController {
         filenameForDownload: file.filename,
       })
 
+      if (parent) {
+        let parentId = req.body.parent
+        while (parentId) {
+          const parentPrev = await File.findOne({ user: req.user.id, _id: parentId })
+          if (parentPrev) {
+            parentPrev.size = parentPrev.size + file.size + file.chunkSize
+            await parentPrev.save()
+          }
+          parentId = parentPrev.parent
+        }
+      }
+
       await dbFile.save()
       await user.save()
 
@@ -84,7 +123,10 @@ class FileController {
         await parent.save()
       }
 
-      return res.json(dbFile)
+      return res.json({
+        file: dbFile,
+        usedSpace: user.usedSpace
+      })
 
     } catch (error) {
       console.log(error)
@@ -182,7 +224,29 @@ class FileController {
         parentFile.childs = parentFile.childs.filter(child => child.toString() !== file._id.toString())
         await parentFile.save()
       }
-      const correctedUserUsedSpace = user.usedSpace - file.size
+
+      if (parentFile) {
+        let parentId = file.parent
+        while (parentId) {
+          const parentPrev = await File.findOne({_id: parentId})
+
+          if (parentPrev.size >= file.size) {
+            parentPrev.size = parentPrev.size - file.size
+          }
+  
+          if (file.type === 'dir' && parentPrev.size >= emptyFolderSize) {
+            parentPrev.size = parentPrev.size - emptyFolderSize
+          }
+          await parentPrev.save()
+
+          parentId = parentPrev.parent
+        }
+      }
+
+      const correctedUserUsedSpace = file.type === 'dir' && user.usedSpace >= emptyFolderSize 
+        ? user.usedSpace - emptyFolderSize 
+        : user.usedSpace - file.size
+
       const fileType = file.type
 
       user.usedSpace = correctedUserUsedSpace
@@ -190,7 +254,10 @@ class FileController {
       await file.deleteOne()
       await user.save()
 
-      return res.json({ message: `${fileType === 'dir' ? 'Folder' : 'File'} was deleted` })
+      return res.json({ 
+        message: `${fileType === 'dir' ? 'Folder' : 'File'} was deleted`,
+        usedSpace: user.usedSpace
+      })
     } catch (error) {
       console.log(error)
       return res.status(500).json({ message: 'Something went wrong, file was not deleted'})
