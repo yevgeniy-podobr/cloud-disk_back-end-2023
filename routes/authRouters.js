@@ -58,6 +58,9 @@ router.post('/login',
         return res.status(401).json({message: 'Invalid password'})
       }
       const token = jwt.sign({id: user.id}, process.env.SECRET_KEY, {expiresIn: "24h"})
+      user.diskSpace = defaultDiskSpace
+
+      await user.save()
 
       return res.json({
         token,

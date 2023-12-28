@@ -19,7 +19,7 @@ class FileController {
       const user = await User.findOne({ _id: req.user.id })
 
       if (user.usedSpace + emptyFolderSize > user.diskSpace) {
-        return res.status(400).json({ message: 'There no space on the disk'})
+        return res.status(400).json({ message: 'There is no free space on the disk'})
       }
 
       if (parentFile){
@@ -88,7 +88,7 @@ class FileController {
       const user = await User.findOne({ _id: req.user.id })
 
       if (user.usedSpace + file.size + file.chunkSize > user.diskSpace) {
-        return res.status(400).json({ message: 'There no space on the disk'})
+        return res.status(400).json({ message: 'There is no free space on the disk'})
       }
 
       user.usedSpace = file.size + file.chunkSize + user.usedSpace
